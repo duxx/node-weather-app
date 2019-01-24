@@ -9,7 +9,7 @@
   "author": "Antti Sand",
   "license": "ISC",
   "dependencies": {
-    "request": "^2.88.0",
+    "axios": "^0.18.0",
     "yargs": "^12.0.5"
   }
 }

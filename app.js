@@ -1,6 +1,7 @@
 const yargs = require('yargs')
-const geocode = require('./geocode')
-const weather = require('./weather')
+const axios = require('axios')
+const GEOCODE_API_KEY = ''
+const WEATHER_API_KEY = ''
 
 const argv = yargs
     .options({
@@ -15,20 +16,21 @@ const argv = yargs
     .alias('help', 'h')
     .argv
 
-geocode.geocodeAddress(argv.address, (errorMessage, results) => {
-    if(errorMessage) {
-        console.log(errorMessage)
-    } else {
-        const location = {
-            lat: results.latitude,
-            lng: results.longitude
-        }
-        weather.getWeather(location, (errorMessage, results) => {
-            if (errorMessage) {
-                console.log(errorMessage)
-            } else {
-                console.log(results)
-            }
-        })
-    }
-})
+const URIaddress = encodeURIComponent(argv.address)
+
+axios
+    .get(`http://www.mapquestapi.com/geocoding/v1/address?key=${GEOCODE_API_KEY}&location=${URIaddress}`)
+    .then((response) => {
+        let latitude = response.data.results[0].locations[0].latLng.lat
+        let longitude = response.data.results[0].locations[0].latLng.lng
+        let weatherUrl = `https://api.darksky.net/forecast/${WEATHER_API_KEY}/${latitude},${longitude}?units=auto`
+        return axios.get(weatherUrl)
+    })
+    .then((response) => {
+        let temperature = response.data.currently.temperature
+        let apparentTemperature = response.data.currently.apparentTemperature
+        console.log(`It's currently ${temperature}. It feels like ${apparentTemperature}.`)
+    })
+    .catch((e) => {
+        console.log(e.message)
+    })
